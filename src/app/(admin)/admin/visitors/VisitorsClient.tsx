@@ -71,10 +71,10 @@ interface PageView {
   page_title: string | null
   referrer: string | null
   viewed_at: string
-  site_visitors?: {
+  site_visitors: {
     name: string | null
     email: string | null
-  }
+  } | null
 }
 
 interface VisitorsClientProps {
@@ -159,14 +159,14 @@ export default function VisitorsClient({
             .eq('id', newEvent.visitor_id)
             .single()
           
-          const pageViewFromEvent = {
+          const pageViewFromEvent: PageView = {
             id: newEvent.id,
             visitor_id: newEvent.visitor_id,
             page_path: newEvent.page_url || '',
-            page_title: newEvent.page_title,
+            page_title: newEvent.page_title || null,
             referrer: null,
             viewed_at: newEvent.created_at,
-            site_visitors: visitor
+            site_visitors: visitor ? { name: visitor.name, email: visitor.email } : null
           }
           
           setPageViews(prev => [pageViewFromEvent, ...prev.slice(0, 99)])
@@ -220,13 +220,14 @@ export default function VisitorsClient({
       .limit(50)
     
     // Transform events to page views format
-    const pageViews = (data || []).map(event => ({
+    const pageViews: PageView[] = (data || []).map(event => ({
       id: event.id,
       visitor_id: event.visitor_id,
       page_path: event.page_url || '',
-      page_title: event.page_title,
+      page_title: event.page_title || null,
       referrer: null,
-      viewed_at: event.created_at
+      viewed_at: event.created_at,
+      site_visitors: null
     }))
     
     setVisitorPageViews(pageViews)
